@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://use.fontawesome.com/2231f865fc.js"></script>
+    <link rel="shortcut icon" href="https://Video.jl.org/theme/images/favicon.png">
+    <title>Video Detail - Video.jl</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          rel="stylesheet"
+          crossorigin="anonymous">
+
+    <link href="/theme/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+    <link href="/theme/css/base.css" rel="stylesheet">
+    <script src="/theme/js/theme-switch.js"></script>
+    
+    <style>
+      .video-header-meta { font-size: 0.9em; color: #666; margin-bottom: 15px; }
+      .video-details-section { margin-top: 20px; }
+    </style>
+</head>
+
+<body>
+  <header id="banner" class="header clearfix">
+    <nav class="header__nav"><div class="container">
+      <ul class="nav">
+        <li role="presentation"><a href="./index.html"><i class="fa fa-fw fa-home"></i> <span>Start</span></a></li>
+        <li role="presentation"><a href="./events.html"><i class="fa fa-fw fa-list-ul"></i> <span>Events</span></a></li>
+        <li role="presentation"><a href="./tags.html"><i class="fa fa-fw fa-tags"></i> <span>Tags</span></a></li>
+        <li role="presentation"><a href="./speakers.html"><i class="fa fa-fw fa-users"></i> <span>Speakers</span></a></li>
+        <li role="presentation"><a href="./pages/about.html"><i class="fa fa-fw fa-info"></i> <span>About</span></a></li>
+      </ul>
+    </div></nav>
+    <div class="container">
+      <h3 class="text-muted header__title">
+        <a href="./"><img src="/theme/images/julia_logo.svg" alt="" style="height:50px"> <span>Video<i>.jl</i></span></a>
+      </h3>
+      <div class="header__searchbox">
+        <form method="GET" action="/search.html">
+          <input name="q" type="search" placeholder="Type / to search...">
+        </form>
+        <button id="theme-toggle" class="theme-toggle" title="Toggle Theme"><i class="fa fa-moon-o"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="index-content">
+      <div id="video-container">
+          <h2 id="video-title">Loading...</h2>
+          <div class="video-header-meta">
+              Translations: <span id="video-language"></span><br/>
+              <i class="fa fa-calendar"></i> <span id="video-published"></span><br/>
+              By <a href="#" id="video-speaker"></a>
+          </div>
+          
+          <div class="embed-responsive embed-responsive-16by9" style="margin-bottom: 20px;">
+              <iframe id="video-player" class="embed-responsive-item" src="" allowfullscreen></iframe>
+          </div>
+          
+          <div class="video-details-section">
+              <h3>Description</h3>
+              <p id="video-description" style="white-space: pre-wrap;"></p>
+              
+              <h3>Details</h3>
+              <ul class="list-unstyled">
+                  <li><strong>Event:</strong> <a href="#" id="video-event"></a></li>
+                  <li><strong>Language:</strong> <span id="video-language-detail"></span></li>
+                  <li><strong>Media URL:</strong> <a href="#" id="video-media-url" target="_blank">YouTube</a></li>
+              </ul>
+          </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; <a href="https://github.com/Video.jl/Video.jl/blob/main/LICENSE">Video.jl</a></p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    
+    <script>
+      $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('id');
+        if(!videoId) {
+          $('#video-container').html('<p class="alert alert-danger">No video ID provided.</p>');
+          return;
+        }
+        
+        $.getJSON('/api/videos/' + videoId, function(video) {
+          if(video.error) {
+            $('#video-container').html('<p class="alert alert-danger">Video not found.</p>');
+            return;
+          }
+          
+          $('#video-title').text(video.title);
+          $('#video-language, #video-language-detail').text(video.language);
+          
+          let dateStr = 'Unknown';
+          if (video.year) {
+              dateStr = video.year;
+          } else if (video.published_at) {
+              dateStr = new Date(video.published_at).toDateString();
+          }
+          $('#video-published').text(dateStr);
+          
+          if(video.speaker_name) {
+              $('#video-speaker').text(video.speaker_name).attr('href', '/search.html?speaker=' + encodeURIComponent(video.speaker_name));
+          } else {
+              $('#video-speaker').parent().hide();
+          }
+          
+          if(video.event_name) {
+              $('#video-event').text(video.event_name).attr('href', '/search.html?event=' + encodeURIComponent(video.event_name));
+          } else {
+              $('#video-event').parent().hide();
+          }
+          
+          var ytIdMatch = video.youtube_url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+          var embedUrl = ytIdMatch ? 'https://www.youtube.com/embed/' + ytIdMatch[1] : '';
+          
+          if (embedUrl) {
+              $('#video-player').attr('src', embedUrl);
+              
+              const updateDescription = (desc) => {
+                  if (desc) {
+                      // Preserve newlines by replacing \n with <br/>
+                      var formattedDesc = desc.replace(/\n/g, '<br/>');
+                      $('#video-description').html(formattedDesc);
+                  } else {
+                      $('#video-description').text("No description available.");
+                  }
+              };
+
+              if (video.description && video.description.trim().length > 0) {
+                  updateDescription(video.description);
+              } else {
+                  // Attempt to get description from Noembed
+                  $.getJSON('https://noembed.com/embed?url=' + encodeURIComponent(video.youtube_url), function(oEmbedData) {
+                      if (oEmbedData && oEmbedData.description) {
+                          updateDescription(oEmbedData.description);
+                      } else {
+                          // If noembed fails to provide description, show a message
+                          updateDescription("Description not available in database. Please check the YouTube media link below.");
+                      }
+                      
+                      if (!video.title && oEmbedData && oEmbedData.title) {
+                          $('#video-title').text(oEmbedData.title);
+                      }
+                  }).fail(function() {
+                      updateDescription("Description not available in database. Error fetching from YouTube.");
+                  });
+              }
+          } else {
+              $('.embed-responsive').hide();
+              updateDescription(video.description || "No description available.");
+          }
+          
+          $('#video-media-url').attr('href', video.youtube_url);
+          document.title = (video.title || 'Video') + ' - Video.jl';
+        }).fail(function() {
+            $('#video-container').html('<p class="alert alert-danger">Error loading video details.</p>');
+        });
+      });
+    </script>
+  </div>
+</body>
+</html>
