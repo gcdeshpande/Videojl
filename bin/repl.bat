@@ -1,0 +1,1 @@
+"/home/theta1/.julia/juliaup/julia-1.10.10+0.x64.linux.gnu/bin/julia" --color=yes --depwarn=no --project=@. -q -i -- "%~dp0..\bootstrap.jl" %*
