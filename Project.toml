@@ -1,0 +1,15 @@
+name = "JuliaVideos"
+uuid = "915c8619-d4e7-49de-9ef8-78fb5d2712a8"
+authors = ["Ian <ian.dsouza301103@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DotEnv = "4dc1fcf4-5e3b-5448-94ab-0c38ec0385c1"
+Genie = "c43c736e-a2d1-11e8-161f-af95117fbd1e"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+Inflector = "6d011eab-0732-4556-8808-e463c76bf3b6"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+LibPQ = "194296ae-ab2e-5f79-8cd4-7183a0a5a0d1"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
